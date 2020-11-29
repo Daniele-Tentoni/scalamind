@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <profile name="sbt 1" modules="judge,player" />
+    <profile name="sbt 2" modules="commons,distributed_mastermind">
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-Ywarn-unused-import" />
+      </parameters>
+    </profile>
+  </component>
+</project>
