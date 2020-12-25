@@ -7,18 +7,31 @@ object Utils {
   val MastermindSystem = "Mastermind"
   val JudgeName = "Judge"
 
-  def readResponse: Future[String] = Future {
-    scala.io.StdIn.readLine()
-  }
-
+  /**
+    * Read on integer input from console. This input must be converted before from string to int.
+    * @return input int.
+    */
   def readInteger: Future[Option[Int]] =
-    readResponse.map(s => {
+    readResponse.map { s =>
       try {
+        // TODO: This can become an Either.
         Some(s.toInt)
       } catch {
         case _: Throwable => None
       }
-    })
+    }
+
+  /**
+    * Read a boolean input from console. This input must be mapped before from string to boolean.
+    * @return input boolean.
+    */
+  def readBoolean: Future[Boolean] =
+    readResponse.map(s =>
+      s.toLowerCase() match {
+        case "y" | "yes" | "1" | "" => true
+        case _                      => false
+      }
+    )
 
   /*def readCommand: Future[Option[Message]] = {
     readResponse map (s => {
@@ -30,11 +43,11 @@ object Utils {
     })
   }*/
 
-  def readBoolean: Future[Boolean] =
-    readResponse.map(s =>
-      s.toLowerCase() match {
-        case "y" | "yes" | "1" | "" => true
-        case _                      => false
-      }
-    )
+  /**
+    * Read a generic input from console.
+    * @return input generic string.
+    */
+  def readResponse: Future[String] = Future {
+    scala.io.StdIn.readLine()
+  }
 }

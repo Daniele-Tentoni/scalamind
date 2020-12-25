@@ -6,35 +6,18 @@ import it.mm.actors.JudgeActor
 object Mastermind extends App {
   println("Working on Mastermind actor distributed system.")
   val system = ActorSystem("Mastermind")
-  println("Input player number")
-  /*Utils.readInteger.onComplete {
-    case Success(Some(p)) =>
-      println("Input turn timer")
-      Utils.readInteger.onComplete {
-        case Success(Some(t)) =>
-          val judge = system.actorOf(JudgeActor.props)
-          judge ! JudgeActor.Create(p)
-        case Failure(_) | Success(None) => println("Must be an integer")
-      }
-    case Failure(_) | Success(None) => println("Must be an integer")
-  }
-   */
+  println("Run judge actor")
   val judge = system.actorOf(JudgeActor.props, "Judge")
-  judge ! JudgeActor.Create(2)
+  // judge ! JudgeActor.Create(2)
 
+  /**
+    * Expand Actor functionalities with log actions.
+    * @param a actor to extend.
+    */
   implicit class RichActor(a: Actor) {
 
     /**
-      * Print in the console a formatted string.
-      *
-      * @param m Message to print.
-      */
-    def log(m: String): Unit =
-      System.out.println(f"[${a.self.path.name}] Log: $m")
-
-    /**
       * Print in error channel a message.
-      *
       * @param m Message to print.
       */
     def error(m: String): Unit =
@@ -48,6 +31,12 @@ object Mastermind extends App {
       // game ! Message.Leave
       a.context.stop(a.self)
     }
-  }
 
+    /**
+      * Print in the console a formatted string.
+      * @param m Message to print.
+      */
+    def log(m: String): Unit =
+      System.out.println(f"[${a.self.path.name}] Log: $m")
+  }
 }

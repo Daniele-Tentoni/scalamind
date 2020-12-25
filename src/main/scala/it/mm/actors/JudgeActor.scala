@@ -1,61 +1,90 @@
 package it.mm.actors
 
 import akka.actor.{Actor, ActorRef, Props, Stash}
-import it.mm.actors.JudgeActor.{Create, EndTurn, Ready, Won}
+import it.mm.actors.JudgeActor._
 import it.mm.Mastermind.RichActor
+import it.mm.actors.models.Message
+import it.mm.Utils
 
-import scala.util.Random
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Random, Success}
 
 object JudgeActor {
 
+  def props: Props = Props(new JudgeActor())
+
   /**
     * Tell to judge to create a game with players.
-    *
-    * @param p number of players.
+    * @param p number of players integrated.
     */
-  case class Create(p: Int)
+  case class Number(p: Int) extends Message
+
+  /**
+    * Tell to judge to set the timer of the game at t.
+    * @param t milliseconds integer.
+    */
+  case class Timer(t: Int) extends Message
+
+  /**
+    * Tell to judge to set string length of players to l.
+    * @param l string length integer.
+    */
+  case class StringLength(l: Int) extends Message
 
   /**
     * Confirm that a player is ready.
     */
-  case class Ready()
+  case class Ready() extends Message
 
   /**
     * Tell to judge to start a game.
     */
-  case class Start(players: Seq[ActorRef])
+  case class Start(players: Seq[ActorRef]) extends Message
 
   /**
     * Tell to judge to end turn and wake another player.
     */
-  case class EndTurn()
+  case class EndTurn() extends Message
 
   /**
     * Tell to judge that a player had won.
     */
-  case class Won()
-
-  def props: Props = Props(new JudgeActor())
+  case class Won() extends Message
 }
 
 class JudgeActor extends Actor with Stash {
-  override def receive: Receive = initializing()
+  override def receive: Receive = initializing(None, None, None)
 
-  def initializing(): Receive = {
-    case Create(n) =>
-      this.log("Creating players")
-      // val lobby: ActorRef = context.actorOf(LobbyActor.props)
-      (0 until n).foreach { i =>
-        val player = context.actorOf(PlayerActor.props, f"Player_$i")
-        this.log(f"Created player ${player.path.name}")
-        player ! PlayerActor.Hi()
-        this.log(f"Sent Hi to ${player.path.name}")
-      // lobby ! LobbyActor.Add(player)
-      }
+  def initializing(
+    numberOfPlayers: Option[Int],
+    timeToLive: Option[Int],
+    stringLength: Option[Int]
+  ): Receive = {
+    case Number(n) =>
+      // User have input a valid player number.
+      this.log("Received player number message")
+      this.log("Now I can ask for timer")
+      context.become(initializing(Some(n), timeToLive, stringLength))
+      askTimer()
+
+    case Timer(t) if t >= 0 =>
+      // User have input a valid timer value.
+      this.log(f"Received timer message")
+      this.log("Now I can ask for string length.")
+      askString()
+
+    case StringLength(l) if l > 0 =>
+      // User have input a valid string length.
+      this.log(f"Received string length message")
+      this.log("Now I can generate players.")
+      val p = numberOfPlayers.map(i => i).getOrElse(2)
+      val t = timeToLive.map(i => i).getOrElse(100)
+      // val l = stringLength.map(i => i).getOrElse(4)
+      startGame(p, t, l)
       this.log("Unstashed all messages")
       unstashAll()
       this.log("Going in starting")
-      context.become(starting(n, Seq.empty[ActorRef]))
+      context.become(starting(p, t, Seq.empty[ActorRef]))
 
     case a =>
       this.error(f"Received $a from ${sender.path.name} while in initializing")
@@ -63,7 +92,7 @@ class JudgeActor extends Actor with Stash {
       this.log("Stashed message")
   }
 
-  def starting(n: Int, players: Seq[ActorRef]): Receive = {
+  def starting(n: Int, t: Int, players: Seq[ActorRef]): Receive = {
     case Ready() if !players.contains(sender) =>
       this.log(s"Received ready message from ${sender.path.name}")
       val o = n - 1
@@ -81,7 +110,7 @@ class JudgeActor extends Actor with Stash {
         }
       } else {
         this.log("Wait for other players")
-        context.become(starting(o, readies))
+        context.become(starting(o, t, readies))
       }
 
     case a =>
@@ -109,4 +138,76 @@ class JudgeActor extends Actor with Stash {
     case a =>
       this.error(f"Received $a from ${sender.path.name} while in waiting")
   }
+
+  override def preStart(): Unit = {
+    println("Welcome to Mastermind! I'm the judge.")
+    // This instruction start the workflow for initialization.
+    // TODO: This maybe configurable.
+    askPlayers()
+  }
+
+  private[this] def askPlayers(): Unit = {
+    def doPrompt(): Unit = Utils.readInteger.onComplete {
+      case Success(Some(value)) if value > 0 =>
+        println(f"Approved $value players")
+        self ! Number(value)
+      case _ =>
+        println(f"Invalid input, please try again.")
+        doPrompt()
+    }
+
+    println("Please enter the number of players")
+    doPrompt()
+  }
+
+  /**
+    * Ask to user the timer for this match.
+    * This instance a Future that complete with user input and send a message to judge actor with data.
+    */
+  private[this] def askTimer(): Unit = {
+    def doPrompt(): Unit = Utils.readInteger.onComplete {
+      case Success(Some(value)) if value >= 0 =>
+        println(f"Approved $value timer")
+        self ! Timer(value)
+      case _ =>
+        println(f"Invalid input, please try again.")
+        doPrompt()
+    }
+
+    println("Please enter player timer. 0 means no timer.")
+    doPrompt()
+  }
+
+  /**
+    * Ask to user the string length for this match.
+    * This instance a Future that complete with user input and send a message to judge actor with data.
+    */
+  private[this] def askString(): Unit = {
+    def doPrompt(): Unit = Utils.readInteger.onComplete {
+      case Success(Some(value)) if value > 0 =>
+        println(f"Approved for $value string length.")
+        self ! StringLength(value)
+      case _ =>
+        println("Invalid input, please try again.")
+        doPrompt()
+    }
+
+    println("Please enter player string length. Must be a positive integer.")
+    doPrompt()
+  }
+
+  /**
+    * Generate and send an invitation to all players.
+    * @param players number of players to generate.
+    * @param timer timer before turn ending.
+    * @param length length of the string to generate.
+    */
+  private[this] def startGame(players: Int, timer: Int, length: Int): Unit =
+    (0 until players).foreach { i =>
+      val player = context.actorOf(PlayerActor.props, f"Player_$i")
+      this.log(f"Created player ${player.path.name}")
+      player ! PlayerActor.Hi()
+      this.log(f"Sent Hi to ${player.path.name}")
+    // lobby ! LobbyActor.Add(player)
+    }
 }
