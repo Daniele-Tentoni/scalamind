@@ -1,6 +1,6 @@
 package it.mm.actors
 
-import akka.actor.{Actor, ActorRef, Props, Stash}
+import akka.actor.{Actor, ActorLogging, ActorRef, Props, Stash}
 import it.mm.actors.JudgeActor._
 import it.mm.Mastermind.RichActor
 import it.mm.actors.models.Message
@@ -52,7 +52,7 @@ object JudgeActor {
   case class Won() extends Message
 }
 
-class JudgeActor extends Actor with Stash {
+class JudgeActor extends Actor with Stash with ActorLogging {
   override def receive: Receive = initializing(None, None, None)
 
   /**
@@ -103,13 +103,6 @@ class JudgeActor extends Actor with Stash {
       this.log("Stashed message")
   }
 
-  /**
-    * Actor state
-    * @param n
-    * @param t
-    * @param players
-    * @return
-    */
   def starting(n: Int, t: Int, players: Seq[ActorRef]): Receive = {
     case Ready() if !players.contains(sender) =>
       this.log(s"Received ready message from ${sender.path.name}")
@@ -166,7 +159,7 @@ class JudgeActor extends Actor with Stash {
 
   /**
     * Ask user for number of players to generate.
-   * Send the result to JudgeActor with Number(n) message.
+    * Send the result to JudgeActor with Number(n) message.
     */
   private[this] def askPlayers(): Unit = {
     def doPrompt(): Unit = Utils.readInteger.onComplete {

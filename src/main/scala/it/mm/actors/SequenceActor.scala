@@ -1,10 +1,19 @@
 package it.mm.actors
 
-import akka.actor.{Actor, ActorRef, PoisonPill, Props, Stash, Terminated}
+import akka.actor.{
+  Actor,
+  ActorLogging,
+  ActorRef,
+  PoisonPill,
+  Props,
+  Stash,
+  Terminated
+}
 import it.mm.actors.models.Message
 import it.mm.actors.SequenceActor.{Config, Extract}
 import it.mm.Mastermind.RichActor
 
+import scala.concurrent.duration.DurationInt
 import scala.util.Random
 
 object SequenceActor {
@@ -18,7 +27,9 @@ object SequenceActor {
   sealed case class Extract() extends Message
 }
 
-class SequenceActor extends Actor with Stash {
+class SequenceActor extends Actor with Stash with ActorLogging {
+
+  import context.dispatcher
 
   /**
     * First state for Sequence actor. Wait for a message from judge actor to
@@ -28,6 +39,8 @@ class SequenceActor extends Actor with Stash {
   override def receive: Receive = {
     // Config sequence length.
     case Config(l) if l > 0 =>
+      // Watch judge to receive terminated message.
+      context.watch(sender)
       this.log(s"Config to $l received from ${sender.path.name}")
       context.become(working(sender, l))
       unstashAll()
@@ -55,15 +68,17 @@ class SequenceActor extends Actor with Stash {
     case Extract() =>
       this.log(s"Received Extract command from ${sender.path.name}")
       // TODO: Change this number to l.
-      val secret: Seq[Int] = (0 until 1).map(i => Random.nextInt(10))
+      val secret: Seq[Int] = (0 until 1).map(_ => Random.nextInt(10))
       sender ! PlayerActor.Secret(secret)
 
     // Anyone else in context is terminated.
     case Terminated(ref) =>
       this.error(s"Received terminated message from ${sender.path.name}")
       this.error(s"It contains ${ref.path.name} ref.")
-      this.error(s"I'm closing too with Poison pill")
-      self ! PoisonPill
+      context.system.scheduler.scheduleOnce(5.second) {
+        this.error(s"I'm closing too with Poison pill")
+        self ! PoisonPill
+      }
 
   }
 
