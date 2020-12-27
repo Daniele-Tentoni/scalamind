@@ -55,12 +55,22 @@ object JudgeActor {
 class JudgeActor extends Actor with Stash {
   override def receive: Receive = initializing(None, None, None)
 
+  /**
+    * In this state, Judge Actor ask to user some parameters before start the
+    * execution of the game. In my case of study, the workflow is fixed: before
+    * ask for number of players, then for turn timer and finally for string
+    * length.
+    * @param numberOfPlayers number of player configured.
+    * @param timeToLive turn timer configured.
+    * @param stringLength string length configured.
+    * @return actor state.
+    */
   def initializing(
     numberOfPlayers: Option[Int],
     timeToLive: Option[Int],
     stringLength: Option[Int]
   ): Receive = {
-    case Number(n) =>
+    case Number(n) if n > 0 =>
       // User have input a valid player number.
       this.log("Received player number message")
       this.log("Now I can ask for timer")
@@ -71,6 +81,7 @@ class JudgeActor extends Actor with Stash {
       // User have input a valid timer value.
       this.log(f"Received timer message")
       this.log("Now I can ask for string length.")
+      context.become(initializing(numberOfPlayers, Some(t), stringLength))
       askString()
 
     case StringLength(l) if l > 0 =>
@@ -156,7 +167,7 @@ class JudgeActor extends Actor with Stash {
         doPrompt()
     }
 
-    println("Please enter the number of players")
+    this.ask("Please enter the number of players")
     doPrompt()
   }
 
@@ -174,7 +185,7 @@ class JudgeActor extends Actor with Stash {
         doPrompt()
     }
 
-    println("Please enter player timer. 0 means no timer.")
+    this.ask("Please enter player timer. 0 means no timer.")
     doPrompt()
   }
 
@@ -192,7 +203,7 @@ class JudgeActor extends Actor with Stash {
         doPrompt()
     }
 
-    println("Please enter player string length. Must be a positive integer.")
+    this.ask("Please enter player string length. Must be a positive integer.")
     doPrompt()
   }
 

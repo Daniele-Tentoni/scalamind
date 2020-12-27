@@ -1,6 +1,6 @@
 name := "distributed_mastermind"
 
-version := "0.1"
+version := "0.1.1"
 
 scalaVersion := "2.12.12"
 
@@ -29,3 +29,5 @@ scalacOptions ++= Seq(
   "-Ywarn-unused-import", // required by `RemoveUnused` rule
   "-feature"
 )
+
+mainClass := Some("it.mm.Mastermind")

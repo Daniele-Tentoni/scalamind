@@ -3,12 +3,13 @@ package it.mm
 import akka.actor.{Actor, ActorSystem}
 import it.mm.actors.JudgeActor
 
+import scala.Console.{GREEN_B, RED_B, RESET, YELLOW_B}
+
 object Mastermind extends App {
   println("Working on Mastermind actor distributed system.")
   val system = ActorSystem("Mastermind")
   println("Run judge actor")
   val judge = system.actorOf(JudgeActor.props, "Judge")
-  // judge ! JudgeActor.Create(2)
 
   /**
     * Expand Actor functionalities with log actions.
@@ -21,7 +22,7 @@ object Mastermind extends App {
       * @param m Message to print.
       */
     def error(m: String): Unit =
-      System.err.println(f"[${a.self.path.name}] Error: $m")
+      Console.err.println(s"$RED_B[${a.self.path.name}]$RESET Error: $m")
 
     /**
       * Stop execution context of the actor.
@@ -37,6 +38,13 @@ object Mastermind extends App {
       * @param m Message to print.
       */
     def log(m: String): Unit =
-      System.out.println(f"[${a.self.path.name}] Log: $m")
+      Console.out.println(f"$YELLOW_B[${a.self.path.name}]$RESET Log: $m")
+
+    /**
+      * Print in the console an answer made by the actor.
+      * @param m answer to ask.
+      */
+    def ask(m: String): Unit =
+      Console.out.println(f"$GREEN_B[${a.self.path.name}]$RESET Ask: $m")
   }
 }
