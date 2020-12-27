@@ -70,6 +70,7 @@ class JudgeActor extends Actor with Stash {
     timeToLive: Option[Int],
     stringLength: Option[Int]
   ): Receive = {
+    // User have message the number of players.
     case Number(n) if n > 0 =>
       // User have input a valid player number.
       this.log("Received player number message")
@@ -77,6 +78,7 @@ class JudgeActor extends Actor with Stash {
       context.become(initializing(Some(n), timeToLive, stringLength))
       askTimer()
 
+    // User have message the timer for turns.
     case Timer(t) if t >= 0 =>
       // User have input a valid timer value.
       this.log(f"Received timer message")
@@ -84,6 +86,7 @@ class JudgeActor extends Actor with Stash {
       context.become(initializing(numberOfPlayers, Some(t), stringLength))
       askString()
 
+    // User have message the length of sequence.
     case StringLength(l) if l > 0 =>
       // User have input a valid string length.
       this.log(f"Received string length message")
@@ -92,17 +95,21 @@ class JudgeActor extends Actor with Stash {
       val t = timeToLive.map(i => i).getOrElse(100)
       // val l = stringLength.map(i => i).getOrElse(4)
       startGame(p, t, l)
-      this.log("Unstashed all messages")
-      unstashAll()
-      this.log("Going in starting")
-      context.become(starting(p, t, Seq.empty[ActorRef]))
 
+    // Unknown message.
     case a =>
       this.error(f"Received $a from ${sender.path.name} while in initializing")
       stash()
       this.log("Stashed message")
   }
 
+  /**
+    * Actor state
+    * @param n
+    * @param t
+    * @param players
+    * @return
+    */
   def starting(n: Int, t: Int, players: Seq[ActorRef]): Receive = {
     case Ready() if !players.contains(sender) =>
       this.log(s"Received ready message from ${sender.path.name}")
@@ -151,12 +158,16 @@ class JudgeActor extends Actor with Stash {
   }
 
   override def preStart(): Unit = {
-    println("Welcome to Mastermind! I'm the judge.")
+    this.log("Welcome to Mastermind! I'm the judge.")
     // This instruction start the workflow for initialization.
     // TODO: This maybe configurable.
     askPlayers()
   }
 
+  /**
+    * Ask user for number of players to generate.
+   * Send the result to JudgeActor with Number(n) message.
+    */
   private[this] def askPlayers(): Unit = {
     def doPrompt(): Unit = Utils.readInteger.onComplete {
       case Success(Some(value)) if value > 0 =>
@@ -213,12 +224,29 @@ class JudgeActor extends Actor with Stash {
     * @param timer timer before turn ending.
     * @param length length of the string to generate.
     */
-  private[this] def startGame(players: Int, timer: Int, length: Int): Unit =
-    (0 until players).foreach { i =>
+  private[this] def startGame(players: Int, timer: Int, length: Int): Unit = {
+    val sequence = context.actorOf(SequenceActor.props, "Sequence")
+    sequence ! SequenceActor.Config(length)
+    val p = welcomePlayers(players, sequence)
+    this.log("Going in starting")
+    context.become(starting(players, timer, Seq.empty[ActorRef]))
+    this.log("Unstashed all messages")
+    unstashAll()
+  }
+
+  /**
+    * Generate and say Hi to players.
+    * @param p number of players to generate.
+    * @param s sequence actor to send to players.
+    * @return sequence of players.
+    */
+  private[this] def welcomePlayers(p: Int, s: ActorRef): Seq[ActorRef] =
+    (0 until p).map { i =>
       val player = context.actorOf(PlayerActor.props, f"Player_$i")
       this.log(f"Created player ${player.path.name}")
-      player ! PlayerActor.Hi()
+      player ! PlayerActor.Hi(s)
       this.log(f"Sent Hi to ${player.path.name}")
-    // lobby ! LobbyActor.Add(player)
+      player
     }
+
 }
