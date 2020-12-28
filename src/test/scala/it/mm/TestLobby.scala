@@ -15,12 +15,14 @@ class TestLobby extends AnyWordSpecLike {
         assertResult(Seq(1))(l1.items)
       }
       "be empty" in {
+        assertResult(true)(l0.isEmpty)
         assertResult(Seq.empty[Int])(l0.items)
       }
     }
     "at merge" should {
       "be empty with two empties" in {
-        assertResult(Lobby.empty[Int])(l0 ++ l0)
+        val sum = l0 ++ l0
+        assertResult(true)(sum.isEmpty)
       }
       "have one element" in {
         assertResult(Lobby.unit(1))(l0 ++ l1)

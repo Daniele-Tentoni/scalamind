@@ -4,7 +4,7 @@ version := "0.1.1"
 
 scalaVersion := "2.12.12"
 
-val akkaV = "2.5.13"
+val akkaV = "2.5.32"
 val akkaTyped = "com.typesafe.akka"   %% "akka-actor-typed" % akkaV
 val akkaRemote = "com.typesafe.akka"  %% "akka-remote"      % akkaV
 val akkaActor = "com.typesafe.akka"   %% "akka-actor"       % akkaV
@@ -21,8 +21,8 @@ val testDependencies = Seq(scalactic, scalaTest, scalamock, scalacheck)
  * Scoverage configurations.
  */
 coverageMinimum := 25
-coverageFailOnMinimum := true
-coverageExcludedPackages := "it.mm.actors.*;"
+coverageFailOnMinimum := false
+coverageExcludedPackages := "it.mm.actors.models.*;it.mm.actors.Lobby*;it.mm.Utils*;it.mm.Mastermind"
 
 libraryDependencies ++= (akkaDependencies ++ testDependencies)
 scalacOptions ++= Seq(
