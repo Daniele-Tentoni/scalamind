@@ -71,9 +71,9 @@ class JudgeActor extends Actor with Stash with ActorLogging {
     stringLength: Option[Int]
   ): Receive = {
     // User have message the number of players.
-    case Number(n) if n > 0 =>
+    case Number(n) if n > 1 =>
       // User have input a valid player number.
-      this.log("Received player number message")
+      log.info("Received player number message")
       this.log("Now I can ask for timer")
       context.become(initializing(Some(n), timeToLive, stringLength))
       askTimer()
@@ -81,7 +81,7 @@ class JudgeActor extends Actor with Stash with ActorLogging {
     // User have message the timer for turns.
     case Timer(t) if t >= 0 =>
       // User have input a valid timer value.
-      this.log(f"Received timer message")
+      log.info(f"Received timer message")
       this.log("Now I can ask for string length.")
       context.become(initializing(numberOfPlayers, Some(t), stringLength))
       askString()
@@ -89,7 +89,7 @@ class JudgeActor extends Actor with Stash with ActorLogging {
     // User have message the length of sequence.
     case StringLength(l) if l > 0 =>
       // User have input a valid string length.
-      this.log(f"Received string length message")
+      log.info(f"Received string length message")
       this.log("Now I can generate players.")
       val p = numberOfPlayers.map(i => i).getOrElse(2)
       val t = timeToLive.map(i => i).getOrElse(100)
@@ -98,14 +98,14 @@ class JudgeActor extends Actor with Stash with ActorLogging {
 
     // Unknown message.
     case a =>
-      this.error(f"Received $a from ${sender.path.name} while in initializing")
+      log.error(f"Received $a from ${sender.path.name} while in initializing")
       stash()
       this.log("Stashed message")
   }
 
   def starting(n: Int, t: Int, players: Seq[ActorRef]): Receive = {
     case Ready() if !players.contains(sender) =>
-      this.log(s"Received ready message from ${sender.path.name}")
+      log.info(s"Received ready message from ${sender.path.name}")
       val o = n - 1
       val readies = sender +: players
       if (o.equals(0)) {

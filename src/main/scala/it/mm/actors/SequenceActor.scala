@@ -23,8 +23,12 @@ object SequenceActor {
     * Say to sequence actor the sequence length for the game.
     * @param l sequence length.
     */
-  sealed case class Config(l: Int) extends Message
-  sealed case class Extract() extends Message
+  final case class Config(l: Int) extends Message
+
+  /**
+    * Ask to sequence actor for a new sequence.
+    */
+  final case class Extract() extends Message
 }
 
 class SequenceActor extends Actor with Stash with ActorLogging {
@@ -41,7 +45,7 @@ class SequenceActor extends Actor with Stash with ActorLogging {
     case Config(l) if l > 0 =>
       // Watch judge to receive terminated message.
       context.watch(sender)
-      this.log(s"Config to $l received from ${sender.path.name}")
+      log.info(s"Config to $l received from ${sender.path.name}")
       context.become(working(sender, l))
       unstashAll()
     /*
@@ -49,12 +53,12 @@ class SequenceActor extends Actor with Stash with ActorLogging {
      * length configuration, stash the request for a better moment.
      */
     case Extract() =>
-      this.error(s"Received extract message from ${sender.path.name}")
-      this.error(s"Stash until Config(l) message from judge is received.")
+      log.warning(s"Received extract message from ${sender.path.name}")
+      log.warning(s"Stash until Config(l) message from judge is received.")
       stash()
     // Other message doesn't be stashed.
     case a =>
-      this.error(s"Received $a while in receive state.")
+      log.error(s"Received $a while in receive state.")
   }
 
   /**
@@ -66,7 +70,7 @@ class SequenceActor extends Actor with Stash with ActorLogging {
   def working(j: ActorRef, l: Int): Receive = {
     // Extract a new sequence and report to user.
     case Extract() =>
-      this.log(s"Received Extract command from ${sender.path.name}")
+      log.info(s"Received Extract command from ${sender.path.name}")
       // TODO: Change this number to l.
       val secret: Seq[Int] = (0 until 1).map(_ => Random.nextInt(10))
       sender ! PlayerActor.Secret(secret)
@@ -79,7 +83,5 @@ class SequenceActor extends Actor with Stash with ActorLogging {
         this.error(s"I'm closing too with Poison pill")
         self ! PoisonPill
       }
-
   }
-
 }
