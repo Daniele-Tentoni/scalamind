@@ -7,7 +7,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/project" />
+            <option value="$PROJECT_DIR$/public" />
+            <option value="$PROJECT_DIR$/telegram" />
           </set>
         </option>
         <option name="sbtVersion" value="1.4.4" />

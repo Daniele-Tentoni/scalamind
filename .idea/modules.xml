@@ -2,6 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Core.iml" filepath="$PROJECT_DIR$/.idea/modules/Core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Public client.iml" filepath="$PROJECT_DIR$/.idea/modules/Public client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Telegram interface.iml" filepath="$PROJECT_DIR$/.idea/modules/Telegram interface.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/distributed_mastermind.iml" filepath="$PROJECT_DIR$/.idea/modules/distributed_mastermind.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/distributed_mastermind-build.iml" filepath="$PROJECT_DIR$/.idea/modules/distributed_mastermind-build.iml" />
     </modules>

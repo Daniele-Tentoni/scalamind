@@ -7,22 +7,20 @@ object Utils {
   val MastermindSystem = "Mastermind"
   val JudgeName = "Judge"
 
-  /**
-    * Read on integer input from console. This input must be converted before from string to int.
+  /** Read on integer input from console. This input must be converted before from string to int.
     * @return input int.
     */
-  def readInteger: Future[Option[Int]] =
+  def readInteger: Future[Either[String, Int]] =
     readResponse.map { s =>
       try {
         // TODO: This can become an Either.
-        Some(s.toInt)
+        Right(s.toInt)
       } catch {
-        case _: Throwable => None
+        case _: Throwable => Left(s)
       }
     }
 
-  /**
-    * Read a boolean input from console. This input must be mapped before from string to boolean.
+  /** Read a boolean input from console. This input must be mapped before from string to boolean.
     * @return input boolean.
     */
   def readBoolean: Future[Boolean] =
@@ -43,8 +41,7 @@ object Utils {
     })
   }*/
 
-  /**
-    * Read a generic input from console.
+  /** Read a generic input from console.
     * @return input generic string.
     */
   def readResponse: Future[String] = Future {

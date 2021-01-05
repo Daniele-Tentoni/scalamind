@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ScalaCompilerConfiguration">
-    <profile name="sbt 1" modules="judge,player" />
-    <profile name="sbt 2" modules="commons,distributed_mastermind">
+    <profile name="sbt 1" modules="Telegram interface,distributed_mastermind,judge,player" />
+    <profile name="sbt 2" modules="Source,commons,src">
+      <option name="featureWarnings" value="true" />
+      <parameters>
+        <parameter value="-Ywarn-unused-import" />
+      </parameters>
+    </profile>
+    <profile name="sbt 3" modules="Public client,public">
+      <plugins>
+        <plugin path="$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.12/1.3.1/scalajs-compiler_2.12.12-1.3.1.jar" />
+      </plugins>
+    </profile>
+    <profile name="sbt 4" modules="Core">
+      <option name="deprecationWarnings" value="true" />
       <option name="featureWarnings" value="true" />
       <parameters>
         <parameter value="-Ywarn-unused-import" />
