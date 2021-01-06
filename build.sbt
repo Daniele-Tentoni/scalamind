@@ -2,12 +2,12 @@ import sbt.Keys.scalacOptions
 import scoverage.ScoverageKeys.coverageFailOnMinimum
 
 ThisBuild / version := "0.1.1"
-ThisBuild / developers              := List(
+ThisBuild / developers := List(
   Developer(
-    id    = "ap",
-    name  = "Antonio Parolisi",
+    id = "ap",
+    name = "Antonio Parolisi",
     email = "daniele.tentoni.1996@gmail.com",
-    url   = url("https://github.com/Daniele-Tentoni")
+    url = url("https://github.com/Daniele-Tentoni")
   )
 )
 ThisBuild / description := "Simple distributed mastermind project."
@@ -57,6 +57,7 @@ lazy val public = Project(id = "public", base = file("public"))
   .dependsOn(src)
 
 lazy val telegram = Project(id = "telegram", base = file("telegram"))
+  .enablePlugins(JavaServerAppPackaging)
   .settings(
     name := "Telegram interface",
     scalaVersion := scalaV,
@@ -64,7 +65,7 @@ lazy val telegram = Project(id = "telegram", base = file("telegram"))
     // Core with minimal dependencies, enough to spawn your first bot.
     libraryDependencies += "com.bot4s" %% "telegram-core" % "4.4.0-RC2",
     // Extra goodies: Webhooks, support for games, bindings for actors.
-    libraryDependencies += "com.bot4s" %% "telegram-akka" % "4.4.0-RC2",
+    libraryDependencies += "com.bot4s" %% "telegram-akka" % "4.4.0-RC2"
     // coverageMinimum := 25,
     // coverageFailOnMinimum := false
   )
