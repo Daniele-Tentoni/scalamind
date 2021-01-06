@@ -65,8 +65,8 @@ lazy val telegram = Project(id = "telegram", base = file("telegram"))
     libraryDependencies += "com.bot4s" %% "telegram-core" % "4.4.0-RC2",
     // Extra goodies: Webhooks, support for games, bindings for actors.
     libraryDependencies += "com.bot4s" %% "telegram-akka" % "4.4.0-RC2",
-    coverageMinimum := 25,
-    coverageFailOnMinimum := false
+    // coverageMinimum := 25,
+    // coverageFailOnMinimum := false
   )
 
 def hello = Command.command("hello") { state =>
