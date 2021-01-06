@@ -27,7 +27,7 @@ val scalamock = "org.scalamock"   %% "scalamock"  % "4.4.0"  % Test
 val scalacheck = "org.scalacheck" %% "scalacheck" % "1.14.1" % Test
 val testDependencies = Seq(scalactic, scalaTest, scalamock, scalacheck)
 
-lazy val src = Project(id = "core", base = file("core"))
+lazy val core = Project(id = "core", base = file("core"))
   .settings(
     name := "Core",
     scalaVersion := scalaV,
@@ -54,11 +54,13 @@ lazy val public = Project(id = "public", base = file("public"))
     scalaVersion := scalaV,
     scalaJSUseMainModuleInitializer := true
   )
-  .dependsOn(src)
+  .dependsOn(core)
 
 lazy val telegram = Project(id = "telegram", base = file("telegram"))
   .enablePlugins(JavaServerAppPackaging)
   .settings(
+    // necessary for sbt-native-packager: https://stackoverflow.com/a/30417973/10220116
+    mainClass in Compile := Some("it.mm.telegram.Bot"),
     name := "Telegram interface",
     scalaVersion := scalaV,
     libraryDependencies ++= testDependencies,
@@ -69,6 +71,7 @@ lazy val telegram = Project(id = "telegram", base = file("telegram"))
     // coverageMinimum := 25,
     // coverageFailOnMinimum := false
   )
+  .dependsOn(core)
 
 def hello = Command.command("hello") { state =>
   println("Hi!")

@@ -138,3 +138,6 @@ project/plugins/project/
 *.log
 
 # End of https://www.toptal.com/developers/gitignore/api/scala,intellij,sbt,git
+
+### Scalamind personal addictions
+telegram/src/main/resources/application.conf

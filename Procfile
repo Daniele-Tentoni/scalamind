@@ -1,0 +1,1 @@
+web: telegram/target/universal/stage/bin/Bot
